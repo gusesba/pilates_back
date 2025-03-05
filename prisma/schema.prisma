@@ -14,180 +14,217 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(uuid()) @db.Uuid
-  name          String   @db.VarChar(100)
-  email         String   @db.VarChar(100)
-  passwordHash  String   @db.VarChar(250)
-  typeUser     String
-  pessoa       Pessoa?
+  id                    String             @id @default(uuid()) @db.Uuid
+  name                  String             @db.VarChar(100)
+  email                 String             @db.VarChar(100)
+  passwordHash          String             @db.VarChar(100)
+  userType              String             @db.VarChar(100)
+  person                Person             @relation("UserPerson", fields: [personId], references: [id])
+  personId              String             @unique @db.Uuid
+  // Owned records
+  ownedPersons          Person[]           @relation("PersonOwner")
+  ownedPhones           Phone[]
+  ownedAddresses        Address[]
+  ownedContracts        Contract[]
+  ownedSchedules        Schedule[]
+  ownedAppointments     Appointment[]
+  ownedEvaluations      Evaluation[]
+  ownedReevaluations    Reevaluation[]
+  ownedProgressNotes    ProgressNote[]
+  ownedExercises        Exercise[]
+  ownedExerciseProgress ExerciseProgress[]
 }
 
-model Pessoa {
-  id           String   @id @default(uuid()) @db.Uuid
-  name         String
-  email        String
-  age          Int
-  genre        String
-  user         User     @relation(fields: [id], references: [id])
-  phones       PhonePerson[]
-  addresses    AddressPerson[]
-  patient      Patient?
-  funcionario  Funcionario?
+model Person {
+  id        String          @id @default(uuid()) @db.Uuid
+  name      String          @db.VarChar(100)
+  email     String          @db.VarChar(100)
+  age       Int
+  gender    String          @db.VarChar(100)
+  user      User?           @relation("UserPerson")
+  phones    PhonePerson[]
+  addresses AddressPerson[]
+  patient   Patient?
+  employee  Employee?
+  owner     User            @relation("PersonOwner", fields: [ownerId], references: [id])
+  ownerId   String          @db.Uuid
 }
 
 model PhonePerson {
-  id           String   @id @default(uuid()) @db.Uuid
-  person       Pessoa   @relation(fields: [personId], references: [id])
-  personId     String   @db.Uuid
-  phone        Phone    @relation(fields: [phoneId], references: [id])
-  phoneId      String   @db.Uuid
+  id       String @id @default(uuid()) @db.Uuid
+  person   Person @relation(fields: [personId], references: [id])
+  personId String @db.Uuid
+  phone    Phone  @relation(fields: [phoneId], references: [id])
+  phoneId  String @db.Uuid
 }
 
 model AddressPerson {
-  id           String   @id @default(uuid()) @db.Uuid
-  person       Pessoa   @relation(fields: [personId], references: [id])
-  personId     String   @db.Uuid
-  address      Address  @relation(fields: [addressId], references: [id])
-  addressId    String   @db.Uuid
+  id        String  @id @default(uuid()) @db.Uuid
+  person    Person  @relation(fields: [personId], references: [id])
+  personId  String  @db.Uuid
+  address   Address @relation(fields: [addressId], references: [id])
+  addressId String  @db.Uuid
 }
 
 model Phone {
-  id           String   @id @default(uuid()) @db.Uuid
-  number       String   @db.VarChar
-  ddd          String   @db.VarChar
-  areaCode     String   @db.VarChar
-  whatsapp     Boolean
-  phonePerson  PhonePerson[]
+  id          String        @id @default(uuid()) @db.Uuid
+  number      String        @db.VarChar(100)
+  areaCode    String        @db.VarChar(100)
+  countryCode String        @db.VarChar(100)
+  whatsapp    Boolean
+  phonePerson PhonePerson[]
+  owner       User          @relation(fields: [ownerId], references: [id])
+  ownerId     String        @db.Uuid
 }
 
 model Address {
-  id           String   @id @default(uuid()) @db.Uuid
-  street       String   @db.VarChar
-  number       Int
-  postCode     String   @db.VarChar
-  neighborhood String   @db.VarChar
-  city         String   @db.VarChar
-  state        String   @db.VarChar
-  country      String   @db.VarChar
+  id            String          @id @default(uuid()) @db.Uuid
+  street        String          @db.VarChar(100)
+  number        Int
+  postalCode    String          @db.VarChar(100)
+  neighborhood  String          @db.VarChar(100)
+  city          String          @db.VarChar(100)
+  state         String          @db.VarChar(100)
+  country       String          @db.VarChar(100)
   addressPerson AddressPerson[]
+  owner         User            @relation(fields: [ownerId], references: [id])
+  ownerId       String          @db.Uuid
 }
 
 model Patient {
-  id               String   @id @default(uuid()) @db.Uuid
-  name             String   @db.VarChar
-  email            String   @db.VarChar
+  id               String                    @id @default(uuid()) @db.Uuid
+  name             String                    @db.VarChar(100)
+  email            String                    @db.VarChar(100)
   age              Int
-  genre            String   @db.VarChar
-  emergencyContact String
-  pessoa           Pessoa   @relation(fields: [id], references: [id])
-  contratos        Contrato[]
-  atendimentos     Atendimento[]
-  fichasAvaliacao  FichaDeAvaliacao[]
-  reavaliacoes     Reavaliacao[]
-  evolucoes        Evolucao[]
+  gender           String                    @db.VarChar(100)
+  emergencyContact String                    @db.VarChar(100)
+  person           Person                    @relation(fields: [id], references: [id])
+  contracts        Contract[]
+  appointments     Appointment[]
+  evaluations      Evaluation[]
+  reevaluations    Reevaluation[]
+  progressNotes    ProgressNote[]
+  schedules        EmployeeSchedulePatient[]
 }
 
-model Funcionario {
-  id              String   @id @default(uuid()) @db.Uuid
-  name            String
-  pessoa          Pessoa   @relation(fields: [id], references: [id])
-  agendas         AgendaFuncionario[]
-  atendimentos    Atendimento[]
+model Employee {
+  id           String             @id @default(uuid()) @db.Uuid
+  name         String             @db.VarChar(100)
+  person       Person             @relation(fields: [personId], references: [id])
+  personId     String             @unique @db.Uuid
+  schedules    EmployeeSchedule[]
+  appointments Appointment[]
 }
 
-model Contrato {
-  id         String   @id @default(uuid()) @db.Uuid
-  paciente   Patient  @relation(fields: [pacienteId], references: [id])
-  pacienteId String   @db.Uuid
-  dataInicio DateTime
-  dataFim    DateTime
-  periodo    String
-}
-
-model Agenda {
+model Contract {
   id        String   @id @default(uuid()) @db.Uuid
-  dataHora  DateTime
-  agendaFuncionarios AgendaFuncionario[]
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  patientId String   @db.Uuid
+  startDate DateTime
+  endDate   DateTime
+  period    String
+  owner     User     @relation(fields: [ownerId], references: [id])
+  ownerId   String   @db.Uuid
 }
 
-model AgendaFuncionario {
-  id            String   @id @default(uuid()) @db.Uuid
-  agenda        Agenda   @relation(fields: [agendaId], references: [id])
-  agendaId      String   @db.Uuid
-  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id])
-  funcionarioId String   @db.Uuid
-  maxPacientes  Int
-  agendaFuncionariosPaciente AgendaFuncionariosPaciente[]
+model Schedule {
+  id                String             @id @default(uuid()) @db.Uuid
+  dateTime          DateTime
+  employeeSchedules EmployeeSchedule[]
+  owner             User               @relation(fields: [ownerId], references: [id])
+  ownerId           String             @db.Uuid
 }
 
-model AgendaFuncionariosPaciente {
-  id                  String   @id @default(uuid()) @db.Uuid
-  agendaFuncionario   AgendaFuncionario @relation(fields: [agendaFuncionarioId], references: [id])
-  agendaFuncionarioId String   @db.Uuid
-  paciente            Patient  @relation(fields: [pacienteId], references: [id])
-  pacienteId          String   @db.Uuid
+model EmployeeSchedule {
+  id                       String                    @id @default(uuid()) @db.Uuid
+  schedule                 Schedule                  @relation(fields: [scheduleId], references: [id])
+  scheduleId               String                    @db.Uuid
+  employee                 Employee                  @relation(fields: [employeeId], references: [id])
+  employeeId               String                    @db.Uuid
+  maxPatients              Int
+  employeeSchedulePatients EmployeeSchedulePatient[]
 }
 
-model Atendimento {
-  id            String   @id @default(uuid()) @db.Uuid
-  paciente      Patient  @relation(fields: [pacienteId], references: [id])
-  pacienteId    String   @db.Uuid
-  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id])
-  funcionarioId String   @db.Uuid
-  dataHora      DateTime
+model EmployeeSchedulePatient {
+  id                 String           @id @default(uuid()) @db.Uuid
+  employeeSchedule   EmployeeSchedule @relation(fields: [employeeScheduleId], references: [id])
+  employeeScheduleId String           @db.Uuid
+  patient            Patient          @relation(fields: [patientId], references: [id])
+  patientId          String           @db.Uuid
 }
 
-model FichaDeAvaliacao {
-  id                      String   @id @default(uuid()) @db.Uuid
-  paciente                Patient  @relation(fields: [pacienteId], references: [id])
-  pacienteId              String   @db.Uuid
-  date                    DateTime
-  role                    String
-  alergias                String
-  fumante                 Boolean
-  etilista                Boolean
-  medicamentos            String
-  diagnosticoClinico      String
-  historicoDoencaAtual    String
-  historicoDoencaPregressa String
-  examesComplementares     String
-  inspecaoPalpacao        String
-  avaliacaoDor            String
-  avaliacaoPostural       String
-  goniometria             String
-  forcaMuscular           String
-  testesEspeciais         String
-}
-
-model Reavaliacao {
+model Appointment {
   id         String   @id @default(uuid()) @db.Uuid
-  paciente   Patient  @relation(fields: [pacienteId], references: [id])
-  pacienteId String   @db.Uuid
-  date       DateTime
+  patient    Patient  @relation(fields: [patientId], references: [id])
+  patientId  String   @db.Uuid
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  employeeId String   @db.Uuid
+  dateTime   DateTime
+  owner      User     @relation(fields: [ownerId], references: [id])
+  ownerId    String   @db.Uuid
 }
 
-model Evolucao {
-  id           String   @id @default(uuid()) @db.Uuid
-  paciente     Patient  @relation(fields: [pacienteId], references: [id])
-  pacienteId   String   @db.Uuid
-  dataSessao   DateTime
-  observation  String
-  presence     Boolean
-  exercicios   EvolucaoExercicio[]
+model Evaluation {
+  id                    String   @id @default(uuid()) @db.Uuid
+  patient               Patient  @relation(fields: [patientId], references: [id])
+  patientId             String   @db.Uuid
+  date                  DateTime
+  role                  String   @db.VarChar(100)
+  allergies             String   @db.Text
+  smoker                Boolean
+  alcoholic             Boolean
+  medications           String   @db.Text
+  clinicalDiagnosis     String   @db.Text
+  currentIllnessHistory String   @db.Text
+  pastIllnessHistory    String   @db.Text
+  complementaryExams    String   @db.Text
+  inspectionPalpation   String   @db.Text
+  painAssessment        String   @db.Text
+  posturalAssessment    String   @db.Text
+  goniometry            String   @db.Text
+  muscularStrength      String   @db.Text
+  specialTests          String   @db.Text
+  owner                 User     @relation(fields: [ownerId], references: [id])
+  ownerId               String   @db.Uuid
+}
+
+model Reevaluation {
+  id        String   @id @default(uuid()) @db.Uuid
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  patientId String   @db.Uuid
+  date      DateTime
+  owner     User     @relation(fields: [ownerId], references: [id])
+  ownerId   String   @db.Uuid
+}
+
+model ProgressNote {
+  id          String             @id @default(uuid()) @db.Uuid
+  patient     Patient            @relation(fields: [patientId], references: [id])
+  patientId   String             @db.Uuid
+  sessionDate DateTime
+  observation String             @db.Text
+  presence    Boolean
+  exercises   ExerciseProgress[]
+  owner       User               @relation(fields: [ownerId], references: [id])
+  ownerId     String             @db.Uuid
 }
 
 model Exercise {
-  id           String   @id @default(uuid()) @db.Uuid
-  name         String
-  description  String
-  evolucoes    EvolucaoExercicio[]
+  id          String             @id @default(uuid()) @db.Uuid
+  name        String             @db.VarChar(100)
+  description String             @db.Text
+  progress    ExerciseProgress[]
+  owner       User               @relation(fields: [ownerId], references: [id])
+  ownerId     String             @db.Uuid
 }
 
-model EvolucaoExercicio {
-  id           String   @id @default(uuid()) @db.Uuid
-  evolucao     Evolucao @relation(fields: [evolucaoId], references: [id])
-  evolucaoId   String   @db.Uuid
-  exercise     Exercise @relation(fields: [exerciseId], references: [id])
-  exerciseId   String   @db.Uuid
-  observation  String
+model ExerciseProgress {
+  id             String       @id @default(uuid()) @db.Uuid
+  progressNote   ProgressNote @relation(fields: [progressNoteId], references: [id])
+  progressNoteId String       @db.Uuid
+  exercise       Exercise     @relation(fields: [exerciseId], references: [id])
+  exerciseId     String       @db.Uuid
+  observation    String       @db.Text
+  owner          User         @relation(fields: [ownerId], references: [id])
+  ownerId        String       @db.Uuid
 }
