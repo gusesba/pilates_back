@@ -1,0 +1,193 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  name          String   @db.VarChar(100)
+  email         String   @db.VarChar(100)
+  passwordHash  String   @db.VarChar(250)
+  typeUser     String
+  pessoa       Pessoa?
+}
+
+model Pessoa {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  email        String
+  age          Int
+  genre        String
+  user         User     @relation(fields: [id], references: [id])
+  phones       PhonePerson[]
+  addresses    AddressPerson[]
+  patient      Patient?
+  funcionario  Funcionario?
+}
+
+model PhonePerson {
+  id           String   @id @default(uuid()) @db.Uuid
+  person       Pessoa   @relation(fields: [personId], references: [id])
+  personId     String   @db.Uuid
+  phone        Phone    @relation(fields: [phoneId], references: [id])
+  phoneId      String   @db.Uuid
+}
+
+model AddressPerson {
+  id           String   @id @default(uuid()) @db.Uuid
+  person       Pessoa   @relation(fields: [personId], references: [id])
+  personId     String   @db.Uuid
+  address      Address  @relation(fields: [addressId], references: [id])
+  addressId    String   @db.Uuid
+}
+
+model Phone {
+  id           String   @id @default(uuid()) @db.Uuid
+  number       String   @db.VarChar
+  ddd          String   @db.VarChar
+  areaCode     String   @db.VarChar
+  whatsapp     Boolean
+  phonePerson  PhonePerson[]
+}
+
+model Address {
+  id           String   @id @default(uuid()) @db.Uuid
+  street       String   @db.VarChar
+  number       Int
+  postCode     String   @db.VarChar
+  neighborhood String   @db.VarChar
+  city         String   @db.VarChar
+  state        String   @db.VarChar
+  country      String   @db.VarChar
+  addressPerson AddressPerson[]
+}
+
+model Patient {
+  id               String   @id @default(uuid()) @db.Uuid
+  name             String   @db.VarChar
+  email            String   @db.VarChar
+  age              Int
+  genre            String   @db.VarChar
+  emergencyContact String
+  pessoa           Pessoa   @relation(fields: [id], references: [id])
+  contratos        Contrato[]
+  atendimentos     Atendimento[]
+  fichasAvaliacao  FichaDeAvaliacao[]
+  reavaliacoes     Reavaliacao[]
+  evolucoes        Evolucao[]
+}
+
+model Funcionario {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String
+  pessoa          Pessoa   @relation(fields: [id], references: [id])
+  agendas         AgendaFuncionario[]
+  atendimentos    Atendimento[]
+}
+
+model Contrato {
+  id         String   @id @default(uuid()) @db.Uuid
+  paciente   Patient  @relation(fields: [pacienteId], references: [id])
+  pacienteId String   @db.Uuid
+  dataInicio DateTime
+  dataFim    DateTime
+  periodo    String
+}
+
+model Agenda {
+  id        String   @id @default(uuid()) @db.Uuid
+  dataHora  DateTime
+  agendaFuncionarios AgendaFuncionario[]
+}
+
+model AgendaFuncionario {
+  id            String   @id @default(uuid()) @db.Uuid
+  agenda        Agenda   @relation(fields: [agendaId], references: [id])
+  agendaId      String   @db.Uuid
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id])
+  funcionarioId String   @db.Uuid
+  maxPacientes  Int
+  agendaFuncionariosPaciente AgendaFuncionariosPaciente[]
+}
+
+model AgendaFuncionariosPaciente {
+  id                  String   @id @default(uuid()) @db.Uuid
+  agendaFuncionario   AgendaFuncionario @relation(fields: [agendaFuncionarioId], references: [id])
+  agendaFuncionarioId String   @db.Uuid
+  paciente            Patient  @relation(fields: [pacienteId], references: [id])
+  pacienteId          String   @db.Uuid
+}
+
+model Atendimento {
+  id            String   @id @default(uuid()) @db.Uuid
+  paciente      Patient  @relation(fields: [pacienteId], references: [id])
+  pacienteId    String   @db.Uuid
+  funcionario   Funcionario @relation(fields: [funcionarioId], references: [id])
+  funcionarioId String   @db.Uuid
+  dataHora      DateTime
+}
+
+model FichaDeAvaliacao {
+  id                      String   @id @default(uuid()) @db.Uuid
+  paciente                Patient  @relation(fields: [pacienteId], references: [id])
+  pacienteId              String   @db.Uuid
+  date                    DateTime
+  role                    String
+  alergias                String
+  fumante                 Boolean
+  etilista                Boolean
+  medicamentos            String
+  diagnosticoClinico      String
+  historicoDoencaAtual    String
+  historicoDoencaPregressa String
+  examesComplementares     String
+  inspecaoPalpacao        String
+  avaliacaoDor            String
+  avaliacaoPostural       String
+  goniometria             String
+  forcaMuscular           String
+  testesEspeciais         String
+}
+
+model Reavaliacao {
+  id         String   @id @default(uuid()) @db.Uuid
+  paciente   Patient  @relation(fields: [pacienteId], references: [id])
+  pacienteId String   @db.Uuid
+  date       DateTime
+}
+
+model Evolucao {
+  id           String   @id @default(uuid()) @db.Uuid
+  paciente     Patient  @relation(fields: [pacienteId], references: [id])
+  pacienteId   String   @db.Uuid
+  dataSessao   DateTime
+  observation  String
+  presence     Boolean
+  exercicios   EvolucaoExercicio[]
+}
+
+model Exercise {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  description  String
+  evolucoes    EvolucaoExercicio[]
+}
+
+model EvolucaoExercicio {
+  id           String   @id @default(uuid()) @db.Uuid
+  evolucao     Evolucao @relation(fields: [evolucaoId], references: [id])
+  evolucaoId   String   @db.Uuid
+  exercise     Exercise @relation(fields: [exerciseId], references: [id])
+  exerciseId   String   @db.Uuid
+  observation  String
+}
