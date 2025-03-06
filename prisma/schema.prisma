@@ -15,12 +15,11 @@ datasource db {
 
 model User {
   id                    String             @id @default(uuid()) @db.Uuid
-  name                  String             @db.VarChar(100)
   email                 String             @db.VarChar(100)
   passwordHash          String             @db.VarChar(100)
   userType              String             @db.VarChar(100)
-  person                Person             @relation("UserPerson", fields: [personId], references: [id])
-  personId              String             @unique @db.Uuid
+  person                Person?            @relation("UserPerson", fields: [personId], references: [id])
+  personId              String?            @unique @db.Uuid
   // Owned records
   ownedPersons          Person[]           @relation("PersonOwner")
   ownedPhones           Phone[]
@@ -39,8 +38,8 @@ model Person {
   id        String          @id @default(uuid()) @db.Uuid
   name      String          @db.VarChar(100)
   email     String          @db.VarChar(100)
-  age       Int
-  gender    String          @db.VarChar(100)
+  age       Int?
+  gender    String?         @db.VarChar(100)
   user      User?           @relation("UserPerson")
   phones    PhonePerson[]
   addresses AddressPerson[]
@@ -93,10 +92,6 @@ model Address {
 
 model Patient {
   id               String                    @id @default(uuid()) @db.Uuid
-  name             String                    @db.VarChar(100)
-  email            String                    @db.VarChar(100)
-  age              Int
-  gender           String                    @db.VarChar(100)
   emergencyContact String                    @db.VarChar(100)
   person           Person                    @relation(fields: [id], references: [id])
   contracts        Contract[]
@@ -109,7 +104,6 @@ model Patient {
 
 model Employee {
   id           String             @id @default(uuid()) @db.Uuid
-  name         String             @db.VarChar(100)
   person       Person             @relation(fields: [personId], references: [id])
   personId     String             @unique @db.Uuid
   schedules    EmployeeSchedule[]

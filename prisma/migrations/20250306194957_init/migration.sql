@@ -1,11 +1,10 @@
 -- CreateTable
 CREATE TABLE "User" (
     "id" UUID NOT NULL,
-    "name" VARCHAR(100) NOT NULL,
     "email" VARCHAR(100) NOT NULL,
     "passwordHash" VARCHAR(100) NOT NULL,
     "userType" VARCHAR(100) NOT NULL,
-    "personId" UUID NOT NULL,
+    "personId" UUID,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -15,8 +14,8 @@ CREATE TABLE "Person" (
     "id" UUID NOT NULL,
     "name" VARCHAR(100) NOT NULL,
     "email" VARCHAR(100) NOT NULL,
-    "age" INTEGER NOT NULL,
-    "gender" VARCHAR(100) NOT NULL,
+    "age" INTEGER,
+    "gender" VARCHAR(100),
     "ownerId" UUID NOT NULL,
 
     CONSTRAINT "Person_pkey" PRIMARY KEY ("id")
@@ -70,10 +69,6 @@ CREATE TABLE "Address" (
 -- CreateTable
 CREATE TABLE "Patient" (
     "id" UUID NOT NULL,
-    "name" VARCHAR(100) NOT NULL,
-    "email" VARCHAR(100) NOT NULL,
-    "age" INTEGER NOT NULL,
-    "gender" VARCHAR(100) NOT NULL,
     "emergencyContact" VARCHAR(100) NOT NULL,
 
     CONSTRAINT "Patient_pkey" PRIMARY KEY ("id")
@@ -82,7 +77,6 @@ CREATE TABLE "Patient" (
 -- CreateTable
 CREATE TABLE "Employee" (
     "id" UUID NOT NULL,
-    "name" VARCHAR(100) NOT NULL,
     "personId" UUID NOT NULL,
 
     CONSTRAINT "Employee_pkey" PRIMARY KEY ("id")
@@ -214,7 +208,7 @@ CREATE UNIQUE INDEX "User_personId_key" ON "User"("personId");
 CREATE UNIQUE INDEX "Employee_personId_key" ON "Employee"("personId");
 
 -- AddForeignKey
-ALTER TABLE "User" ADD CONSTRAINT "User_personId_fkey" FOREIGN KEY ("personId") REFERENCES "Person"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "User" ADD CONSTRAINT "User_personId_fkey" FOREIGN KEY ("personId") REFERENCES "Person"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Person" ADD CONSTRAINT "Person_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
